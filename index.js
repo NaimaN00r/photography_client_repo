@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const jwt=require('jsonwebtoken');
 
 require('dotenv').config();
 
@@ -17,6 +18,12 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 async function run(){
     try{
         const serviceCollection = client.db('photography').collection('services');
+        const reviewCollection = client.db('photography').collection('reviews');
+        app.post('/jwt',(req,res)=>{
+            const user=req.body;
+            const token=jwt.sign(user, process.env.ACCESS_TOKEN_SECRET,{expiresIn:'1h'})
+            res.send({token})
+        })
         app.get('/services', async(req, res) => {
             const query = {}
             const cursor = serviceCollection.find(query).limit(3);
@@ -59,6 +66,40 @@ async function run(){
               });
             }
           });
+        //   app.get('/reviews/:id', async (req, res) => {
+        //     const id = req.params.id;
+        //     const query = { _id: ObjectId(id) };
+        //     const service = await reviewCollection.findOne(query);
+        //     res.send(service);
+        // });
+        app.get('/reviews',async (req, res) => {
+          // const decoded = req.decoded;
+          
+          // if(decoded.email !== req.query.email){
+          //     res.status(403).send({message: 'unauthorized access'})
+          // }
+
+          let query = {};
+          if (req.query.service) {
+              query = {
+                  service: req.query.service
+              }
+          }
+          const cursor = reviewCollection.find(query);
+          const orders = await cursor.toArray();
+          res.send(orders);
+      });
+        //   app.get('/reviews', async (req, res) => {
+        //     const query = {}
+        //     const cursor = reviewCollection.find(query);
+        //     const services = await cursor.toArray();
+        //     res.send(services);
+        // });
+          app.post('/reviews',  async (req, res) => {
+            const order = req.body;
+            const result = await reviewCollection.insertOne(order);
+            res.send(result);
+        });
     }
     finally{
 
@@ -67,14 +108,9 @@ async function run(){
 }
 run().catch(err=>console.log(err));
 
-
 app.get('/', (req, res) => {
     res.send('Photography Server Running');
 });
-
-
-
-
 
 app.listen(port, () => {
     console.log(`Photography server running on port ${port}`);
