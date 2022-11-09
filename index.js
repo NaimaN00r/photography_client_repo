@@ -72,23 +72,42 @@ async function run(){
         //     const service = await reviewCollection.findOne(query);
         //     res.send(service);
         // });
-        app.get('/reviews',async (req, res) => {
-          // const decoded = req.decoded;
+      //   app.get('/reviews',async (req, res) => {
           
-          // if(decoded.email !== req.query.email){
-          //     res.status(403).send({message: 'unauthorized access'})
-          // }
+      //     let query = {};
+      //     if (req.query.service) {
+      //         query = {
+      //             service: req.query.service
+      //         }
+      //     }
+      //     const cursor = reviewCollection.find(query);
+      //     const orders = await cursor.toArray();
+      //     res.send(orders);
+      // });
 
-          let query = {};
-          if (req.query.service) {
+      app.get('/reviews',async (req, res) => {
+        // const decoded = req.decoded;
+        
+        // if(decoded.email !== req.query.email){
+        //     res.status(403).send({message: 'unauthorized access'})
+        // }
+
+        let query = {};
+        if (req.query.service) {
               query = {
                   service: req.query.service
               }
           }
-          const cursor = reviewCollection.find(query);
-          const orders = await cursor.toArray();
-          res.send(orders);
-      });
+        if (req.query.email) {
+            query = {
+                email: req.query.email
+            }
+        }
+
+        const cursor = reviewCollection.find(query);
+        const orders = await cursor.toArray();
+        res.send(orders);
+    });
         //   app.get('/reviews', async (req, res) => {
         //     const query = {}
         //     const cursor = reviewCollection.find(query);
@@ -100,6 +119,13 @@ async function run(){
             const result = await reviewCollection.insertOne(order);
             res.send(result);
         });
+
+        app.delete('/reviews/:id', async (req, res) => {
+          const id = req.params.id;
+          const query = { _id: ObjectId(id) };
+          const result = await reviewCollection.deleteOne(query);
+          res.send(result);
+      })
     }
     finally{
 
