@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 require('dotenv').config();
 
@@ -29,6 +29,36 @@ async function run(){
             const services = await cursor.toArray();
             res.send(services);
         });
+        app.get('/services/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const service = await serviceCollection.findOne(query);
+            res.send(service);
+        });
+
+        app.post("/services", async (req, res) => {
+            try {
+              const result = await serviceCollection.insertOne(req.body);
+          
+              if (result.insertedId) {
+                res.send({
+                  success: true,
+                  message: `Successfully created the ${req.body.title} with id ${result.insertedId}`,
+                });
+              } else {
+                res.send({
+                  success: false,
+                  error: "Couldn't create the product",
+                });
+              }
+            } catch (error) {
+              console.log(error.name.bgRed, error.message.bold);
+              res.send({
+                success: false,
+                error: error.message,
+              });
+            }
+          });
     }
     finally{
 
