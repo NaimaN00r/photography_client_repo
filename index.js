@@ -108,7 +108,7 @@ async function run(){
         const orders = await cursor.toArray();
         res.send(orders);
     });
-          app.post('/reviews',  async (req, res) => {
+          app.post('/reviews',verifyJWT,  async (req, res) => {
             const order = req.body;
             const result = await reviewCollection.insertOne(order);
             res.send(result);
