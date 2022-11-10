@@ -60,7 +60,6 @@ async function run(){
             const service = await serviceCollection.findOne(query);
             res.send(service);
         });
-
         app.post("/services", async (req, res) => {
             try {
               const result = await serviceCollection.insertOne(req.body);
@@ -85,41 +84,91 @@ async function run(){
             }
           });
        
-      app.get('/reviews',verifyJWT, async (req, res) => {
+      app.get('/reviews', async (req, res) => {
         const decoded = req.decoded;
         
-        if(decoded.email !== req.query.email){
-            res.status(403).send({message: 'unauthorized access'})
-        }
-
-        let query = {};
+        // if(decoded.email !== req.query.email){
+        //     res.status(403).send({message: 'unauthorized access'})
+        // }
+        
+      let query = {};
+      try{
         if (req.query.service) {
-              query = {
-                  service: req.query.service
-              }
+          query = {
+              service: req.query.service
           }
-        if (req.query.email) {
-            query = {
-                email: req.query.email
-            }
+
+      }
+      // options:{
+      //   sort:{
+      //      createdAt : -1 //descending order
+      //   }
+    // }
+    if (req.query.email) {
+        query = {
+            email: req.query.email
         }
+    }
+      }
+      catch (error) {
+        console.log(error.name.bgRed, error.message.bold);
+        res.send({
+          success: false,
+          error: error.message,
+        });
+      }
+        
+        
+
 
         const cursor = reviewCollection.find(query);
         const orders = await cursor.toArray();
         res.send(orders);
     });
-          app.post('/reviews',verifyJWT,  async (req, res) => {
+          app.post('/reviews', async (req, res) => {
             const order = req.body;
             const result = await reviewCollection.insertOne(order);
             res.send(result);
         });
+        app.get('/reviews/:id', async (req, res) => {
+          const id = req.params.id;
+          const query = { _id: ObjectId(id) };
+          const service = await reviewCollection.findOne(query);
+          res.send(service);
+      });
 
-        app.delete('/reviews/:id', async (req, res) => {
+
+        app.delete('/reviews/:id',  async (req, res) => {
           const id = req.params.id;
           const query = { _id: ObjectId(id) };
           const result = await reviewCollection.deleteOne(query);
           res.send(result);
-      })
+      });
+      app.patch("/reviews/:id", async (req, res) => {
+        const { id } = req.params;
+      
+        try {
+          const result = await reviewCollection.updateOne({ _id: ObjectId(id) }, { $set: req.body });
+      
+          if (result.matchedCount) {
+            res.send({
+              success: true,
+              message: `successfully updated ${req.body.name}`,
+            });
+          } else {
+            res.send({
+              success: false,
+              error: "Couldn't update  the product",
+            });
+          }
+        } catch (error) {
+          res.send({
+            success: false,
+            error: error.message,
+          });
+        }
+      });
+      
     }
     finally{
 
