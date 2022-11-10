@@ -83,44 +83,34 @@ async function run(){
               });
             }
           });
+
+          app.get('/reviews', async(req, res) => {
+            const query = {}
+            const cursor = reviewCollection.find(query);
+            const services = await cursor.toArray();
+            res.send(services);
+        });
        
       app.get('/reviews', async (req, res) => {
         const decoded = req.decoded;
-        
-        // if(decoded.email !== req.query.email){
-        //     res.status(403).send({message: 'unauthorized access'})
-        // }
+        console.log('inside',decoded);
+        if(decoded.email !== req.query.email){
+            res.status(403).send({message: 'unauthorized access'})
+        }
         
       let query = {};
-      try{
         if (req.query.service) {
           query = {
               service: req.query.service
           }
 
       }
-      // options:{
-      //   sort:{
-      //      createdAt : -1 //descending order
-      //   }
-    // }
+     
     if (req.query.email) {
         query = {
             email: req.query.email
         }
     }
-      }
-      catch (error) {
-        console.log(error.name.bgRed, error.message.bold);
-        res.send({
-          success: false,
-          error: error.message,
-        });
-      }
-        
-        
-
-
         const cursor = reviewCollection.find(query);
         const orders = await cursor.toArray();
         res.send(orders);
@@ -138,7 +128,7 @@ async function run(){
       });
 
 
-        app.delete('/reviews/:id',  async (req, res) => {
+        app.delete('/reviews/:id', async (req, res) => {
           const id = req.params.id;
           const query = { _id: ObjectId(id) };
           const result = await reviewCollection.deleteOne(query);
